@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BABAMY Tombola</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.kkiapay.me/k.js"></script>
+<style>
+  :root{
+    --ink:#12123A;
+    --panel:#1B1B52;
+    --panel-2:#20205F;
+    --gold:#F2B705;
+    --coral:#FF5A46;
+    --paper:#FBF7EE;
+    --green:#2FA876;
+    --muted:#9A9AC8;
+    --line:rgba(255,255,255,0.12);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--ink);
+    color:var(--paper);
+    font-family:'Manrope',sans-serif;
+    min-height:100vh;
+    overflow-x:hidden;
+  }
+  .display{font-family:'Space Grotesk',sans-serif;}
+  .mono{font-family:'Space Mono',monospace;}
+
+  /* subtle dotted texture on bg */
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    background-image:radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
+    background-size:22px 22px;
+    pointer-events:none;
+    z-index:0;
+  }
+
+  a{color:inherit;text-decoration:none;}
+  button{font-family:inherit;cursor:pointer;border:none;}
+  input,select{font-family:inherit;}
+
+  /* ---------- NAV ---------- */
+  nav{
+    position:sticky; top:0; z-index:50;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:18px 6vw;
+    background:rgba(18,18,58,0.85);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .logo{display:flex; align-items:center; gap:10px;}
+  .logo-mark{
+    width:34px;height:34px;border-radius:8px;
+    background:linear-gradient(135deg,var(--gold),var(--coral));
+    display:flex;align-items:center;justify-content:center;
+    font-weight:700;color:var(--ink);font-family:'Space Grotesk',sans-serif;
+    transform:rotate(-6deg);
+  }
+  .logo-text{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.1rem;letter-spacing:0.02em;}
+  .logo-text span{color:var(--gold);}
+  .navlinks{display:flex; gap:26px; font-size:0.92rem; color:var(--muted);}
+  .navlinks a:hover{color:var(--paper);}
+  .navlinks{display:none;}
+  @media(min-width:720px){.navlinks{display:flex;}}
+
+  main{position:relative; z-index:1;}
+  section{padding:64px 6vw;}
+
+  /* ---------- HERO ---------- */
+  .hero{
+    padding-top:48px;
+    display:grid; gap:40px;
+    align-items:center;
+  }
+  @media(min-width:900px){.hero{grid-template-columns:1.1fr 0.9fr; padding-top:64px;}}
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px;
+    font-size:0.78rem; letter-spacing:0.14em; text-transform:uppercase;
+    color:var(--gold); font-weight:700; margin-bottom:18px;
+  }
+  .eyebrow::before{content:"●"; font-size:0.6rem; animation:pulse 1.6s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.25;}}
+  h1{
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:700;
+    font-size:clamp(2.2rem, 5.5vw, 3.6rem);
+    line-height:1.05;
+    letter-spacing:-0.01em;
+  }
+  h1 .accent{color:var(--gold);}
+  .hero p.sub{margin-top:18px; font-size:1.05rem; color:var(--muted); max-width:46ch; line-height:1.55;}
+  .hero-ctas{display:flex; gap:14px; margin-top:32px; flex-wrap:wrap;}
+  .btn{
+    padding:14px 26px; border-radius:10px; font-weight:700; font-size:0.95rem;
+    transition:transform 0.15s ease, box-shadow 0.15s ease;
+    display:inline-flex; align-items:center; gap:8px;
+  }
+  .btn:active{transform:scale(0.97);}
+  .btn-primary{background:var(--coral); color:var(--paper); box-shadow:0 8px 24px -8px rgba(255,90,70,0.6);}
+  .btn-primary:hover{box-shadow:0 10px 28px -6px rgba(255,90,70,0.75);}
+  .btn-ghost{background:transparent; color:var(--paper); border:1px solid var(--line);}
+  .btn-ghost:hover{border-color:var(--gold); color:var(--gold);}
+  .btn-gold{background:var(--gold); color:var(--ink);}
+
+  .countdown{display:flex; gap:12px; margin-top:30px;}
+  .cd-box{
+    background:var(--panel); border:1px solid var(--line); border-radius:10px;
+    padding:12px 14px; text-align:center; min-width:64px;
+  }
+  .cd-box .num{font-family:'Space Mono',monospace; font-weight:700; font-size:1.5rem; color:var(--gold);}
+  .cd-box .lab{font-size:0.65rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-top:2px;}
+
+  /* ---------- TICKET STUB (signature element) ---------- */
+  .stub{
+    position:relative;
+    background:var(--paper); color:var(--ink);
+    border-radius:14px;
+    padding:26px;
+    box-shadow:0 30px 60px -20px rgba(0,0,0,0.55);
+    transform:rotate(2deg);
+  }
+  .stub::before, .stub::after{
+    content:"";
+    position:absolute; width:26px; height:26px; background:var(--ink);
+    border-radius:50%; top:50%; transform:translateY(-50%);
+  }
+  .stub::before{left:-13px;}
+  .stub::after{right:-13px;}
+  .stub-notch{
+    border-left:2px dashed rgba(18,18,58,0.25);
+    position:absolute; top:14px; bottom:14px; right:100px;
+  }
+  .stub-top{display:flex; justify-content:space-between; align-items:flex-start;}
+  .stub-brand{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:0.85rem; letter-spacing:0.05em;}
+  .stub-brand span{color:var(--coral);}
+  .stub-tag{font-size:0.65rem; text-transform:uppercase; letter-spacing:0.1em; color:#6b6b95; margin-top:2px;}
+  .stub-prize{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:1.4rem; margin-top:18px; line-height:1.15;}
+  .stub-row{display:flex; justify-content:space-between; margin-top:22px; align-items:flex-end;}
+  .stub-price{font-family:'Space Mono',monospace; font-weight:700; font-size:1.1rem; color:var(--coral);}
+  .stub-number{font-family:'Space Mono',monospace; font-weight:700; font-size:1.05rem; letter-spacing:0.05em;}
+  .stub-label{font-size:0.62rem; text-transform:uppercase; letter-spacing:0.08em; color:#6b6b95;}
+
+  /* ---------- SECTIONS COMMON ---------- */
+  .section-head{margin-bottom:34px; max-width:60ch;}
+  .section-eyebrow{font-size:0.78rem; text-transform:uppercase; letter-spacing:0.14em; color:var(--gold); font-weight:700; margin-bottom:8px;}
+  .section-title{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:clamp(1.5rem,3vw,2.1rem);}
+  .section-sub{color:var(--muted); margin-top:10px; line-height:1.55;}
+
+  .card{
+    background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:28px;
+  }
+
+  /* ---------- BUY ---------- */
+  .buy-grid{display:grid; gap:24px;}
+  @media(min-width:860px){.buy-grid{grid-template-columns:1fr 1fr;}}
+  .field{margin-bottom:18px;}
+  .field label{display:block; font-size:0.8rem; color:var(--muted); margin-bottom:6px; font-weight:600;}
+  .field input, .field select{
+    width:100%; padding:13px 14px; border-radius:9px;
+    background:var(--ink); border:1px solid var(--line); color:var(--paper); font-size:0.95rem;
+  }
+  .field input:focus, .field select:focus{outline:2px solid var(--gold); outline-offset:1px;}
+  .qty-row{display:flex; align-items:center; gap:14px;}
+  .qty-btn{
+    width:42px; height:42px; border-radius:9px; background:var(--ink); border:1px solid var(--line);
+    color:var(--paper); font-size:1.2rem; font-weight:700;
+  }
+  .qty-btn:hover{border-color:var(--gold);}
+  .qty-val{font-family:'Space Mono',monospace; font-size:1.3rem; font-weight:700; min-width:32px; text-align:center;}
+  .total-line{
+    display:flex; justify-content:space-between; align-items:center;
+    padding-top:18px; margin-top:18px; border-top:1px dashed var(--line);
+  }
+  .total-line .amount{font-family:'Space Mono',monospace; font-weight:700; font-size:1.5rem; color:var(--gold);}
+  .demo-note{
+    font-size:0.78rem; color:var(--muted); margin-top:14px; padding:10px 12px;
+    background:rgba(242,183,5,0.08); border:1px solid rgba(242,183,5,0.25); border-radius:8px;
+  }
+  #buyMsg{margin-top:14px; font-size:0.9rem;}
+
+  /* ---------- MY TICKETS ---------- */
+  .search-row{display:flex; gap:10px; flex-wrap:wrap;}
+  .search-row input{flex:1; min-width:200px;}
+  .tickets-list{display:grid; gap:16px; margin-top:26px;}
+  @media(min-width:700px){.tickets-list{grid-template-columns:1fr 1fr;}}
+  .mini-stub{
+    background:var(--paper); color:var(--ink); border-radius:10px; padding:16px 18px;
+    display:flex; justify-content:space-between; align-items:center;
+    border-left:4px dashed var(--coral);
+  }
+  .mini-stub .num{font-family:'Space Mono',monospace; font-weight:700;}
+  .mini-stub .win{color:var(--green); font-weight:700; font-size:0.75rem; text-transform:uppercase;}
+
+  /* ---------- RESULTS ---------- */
+  .result-card{
+    background:linear-gradient(135deg, var(--panel), var(--panel-2));
+    border:1px solid var(--line); border-radius:16px; padding:40px; text-align:center;
+  }
+  .result-card .winner-num{
+    font-family:'Space Mono',monospace; font-size:clamp(2rem,6vw,3.2rem); font-weight:700; color:var(--gold);
+    margin:14px 0;
+  }
+  .live-badge{
+    display:inline-flex; align-items:center; gap:8px; background:rgba(255,90,70,0.15);
+    color:var(--coral); padding:8px 16px; border-radius:20px; font-size:0.8rem; font-weight:700;
+    text-transform:uppercase; letter-spacing:0.05em;
+  }
+
+  /* ---------- ADMIN ---------- */
+  #adminGate{max-width:420px;}
+  .hidden{display:none !important;}
+  .admin-grid{display:grid; gap:24px;}
+  @media(min-width:900px){.admin-grid{grid-template-columns:1fr 1fr;}}
+  table{width:100%; border-collapse:collapse; margin-top:16px; font-size:0.85rem;}
+  th,td{text-align:left; padding:9px 10px; border-bottom:1px solid var(--line);}
+  th{color:var(--muted); font-weight:600; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em;}
+  .stat-row{display:flex; gap:16px; flex-wrap:wrap; margin-bottom:20px;}
+  .stat{background:var(--ink); border:1px solid var(--line); border-radius:10px; padding:14px 18px; flex:1; min-width:130px;}
+  .stat .v{font-family:'Space Mono',monospace; font-weight:700; font-size:1.4rem; color:var(--gold);}
+  .stat .l{font-size:0.7rem; color:var(--muted); text-transform:uppercase; margin-top:2px;}
+
+  footer{
+    padding:40px 6vw; border-top:1px solid var(--line); color:var(--muted); font-size:0.85rem;
+    display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;
+  }
+  footer .fbrand{color:var(--paper); font-weight:700; font-family:'Space Grotesk',sans-serif;}
+
+  .toast{
+    position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
+    background:var(--green); color:var(--ink); font-weight:700; padding:14px 22px;
+    border-radius:10px; z-index:100; box-shadow:0 12px 30px -8px rgba(0,0,0,0.5);
+    opacity:0; pointer-events:none; transition:opacity 0.25s ease, bottom 0.25s ease;
+  }
+  .toast.show{opacity:1; bottom:34px;}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">
+    <div class="logo-mark">B</div>
+    <div class="logo-text">BABAMY <span>TOMBOLA</span></div>
+  </div>
+  <div class="navlinks">
+    <a href="#acheter">Acheter</a>
+    <a href="#mes-tickets">Mes tickets</a>
+    <a href="#resultats">Résultats</a>
+    <a href="#comment">Comment ça marche</a>
+  </div>
+  <a href="#acheter" class="btn btn-gold" style="padding:10px 18px;font-size:0.85rem;">Acheter un ticket</a>
+</nav>
+
+<main>
+
+  <!-- HERO -->
+  <section class="hero" id="accueil">
+    <div>
+      <div class="eyebrow">Tirage en direct</div>
+      <h1>Tentez votre chance,<br><span class="accent" id="heroPrize">gagnez un colis surprise</span>.</h1>
+      <p class="sub">Achetez votre ticket en quelques secondes, payez par Mobile Money, et suivez le tirage en direct pour découvrir qui remporte le lot. 100% transparent.</p>
+      <div class="hero-ctas">
+        <a href="#acheter" class="btn btn-primary">🎟️ Acheter mon ticket</a>
+        <a href="#comment" class="btn btn-ghost">Comment ça marche</a>
+      </div>
+      <div class="countdown" id="countdown">
+        <div class="cd-box"><div class="num" id="cdD">--</div><div class="lab">Jours</div></div>
+        <div class="cd-box"><div class="num" id="cdH">--</div><div class="lab">Heures</div></div>
+        <div class="cd-box"><div class="num" id="cdM">--</div><div class="lab">Min</div></div>
+        <div class="cd-box"><div class="num" id="cdS">--</div><div class="lab">Sec</div></div>
+      </div>
+    </div>
+    <div>
+      <div class="stub">
+        <div class="stub-notch"></div>
+        <div class="stub-top">
+          <div>
+            <div class="stub-brand">BABAMY <span>TOMBOLA</span></div>
+            <div class="stub-tag">Ticket officiel</div>
+          </div>
+          <div style="font-size:1.6rem;">🎫</div>
+        </div>
+        <div class="stub-prize" id="stubPrize">Colis surprise à gagner</div>
+        <div class="stub-row">
+          <div>
+            <div class="stub-label">Prix du ticket</div>
+            <div class="stub-price" id="stubPrice">500 FCFA</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="stub-label">N° exemple</div>
+            <div class="stub-number">BBM-0001</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ACHETER -->
+  <section id="acheter">
+    <div class="section-head">
+      <div class="section-eyebrow">Étape 1</div>
+      <h2 class="section-title">Achète tes tickets</h2>
+      <p class="section-sub">Choisis ton nombre de tickets, renseigne tes coordonnées et paie directement par Mobile Money (MTN / Moov).</p>
+    </div>
+    <div class="buy-grid">
+      <div class="card">
+        <div class="field">
+          <label>Nom complet</label>
+          <input type="text" id="buyerName" placeholder="Ex : Aditè Kossou">
+        </div>
+        <div class="field">
+          <label>Numéro Mobile Money (MTN / Moov)</label>
+          <input type="tel" id="buyerPhone" placeholder="Ex : 97 00 00 00">
+        </div>
+        <div class="field">
+          <label>Nombre de tickets</label>
+          <div class="qty-row">
+            <button class="qty-btn" id="qtyMinus">−</button>
+            <div class="qty-val" id="qtyVal">1</div>
+            <button class="qty-btn" id="qtyPlus">+</button>
+          </div>
+        </div>
+        <div class="total-line">
+          <span>Total à payer</span>
+          <span class="amount" id="totalAmount">500 FCFA</span>
+        </div>
+        <button class="btn btn-primary" id="payBtn" style="width:100%; justify-content:center; margin-top:20px;">Payer avec Mobile Money</button>
+        <div class="demo-note">⚠️ Ce prototype utilise KKiaPay en mode sandbox. Tant que la vraie clé API n'est pas configurée dans le code, le paiement bascule automatiquement en <strong>mode démo</strong> (simulation) pour que tu puisses tester le parcours.</div>
+        <div id="buyMsg"></div>
+      </div>
+      <div>
+        <div class="card" style="margin-bottom:18px;">
+          <strong style="font-family:'Space Grotesk',sans-serif;">🔒 Sécurité & transparence</strong>
+          <p style="color:var(--muted); margin-top:10px; font-size:0.9rem; line-height:1.6;">
+            Chaque ticket reçoit un numéro unique généré au moment du paiement. Aucune numérotation manuelle : impossible de favoriser un acheteur. Le tirage se fait en direct — le numéro gagnant est ensuite comparé publiquement à la liste des tickets vendus.
+          </p>
+        </div>
+        <div class="card">
+          <strong style="font-family:'Space Grotesk',sans-serif;">📦 Le lot à gagner</strong>
+          <p style="color:var(--muted); margin-top:10px; font-size:0.9rem;" id="prizeDetail">Détails du lot en cours de mise à jour par l'organisateur.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MES TICKETS -->
+  <section id="mes-tickets">
+    <div class="section-head">
+      <div class="section-eyebrow">Étape 2</div>
+      <h2 class="section-title">Retrouve tes tickets</h2>
+      <p class="section-sub">Entre le numéro de téléphone utilisé lors de l'achat pour voir tous tes tickets.</p>
+    </div>
+    <div class="card">
+      <div class="search-row">
+        <input type="tel" id="lookupPhone" placeholder="Ton numéro Mobile Money">
+        <button class="btn btn-gold" id="lookupBtn">Rechercher</button>
+      </div>
+      <div class="tickets-list" id="ticketsList"></div>
+    </div>
+  </section>
+
+  <!-- RESULTATS -->
+  <section id="resultats">
+    <div class="section-head">
+      <div class="section-eyebrow">Étape 3</div>
+      <h2 class="section-title">Résultats du tirage</h2>
+      <p class="section-sub">Le tirage se déroule en direct sur nos réseaux. Le résultat est publié ici juste après.</p>
+    </div>
+    <div class="result-card" id="resultCard">
+      <div class="live-badge">● Tirage à venir</div>
+      <div style="margin-top:16px; color:var(--muted);">Reviens ici après le live pour découvrir le numéro gagnant.</div>
+      <a href="#" id="liveLinkBtn" class="btn btn-ghost" style="margin-top:20px; display:none;">▶ Voir le live</a>
+    </div>
+  </section>
+
+  <!-- COMMENT CA MARCHE -->
+  <section id="comment">
+    <div class="section-head">
+      <div class="section-eyebrow">Le principe</div>
+      <h2 class="section-title">Comment ça marche</h2>
+    </div>
+    <div class="buy-grid">
+      <div class="card">
+        <strong class="display">1. Achète ton ticket</strong>
+        <p style="color:var(--muted); margin-top:8px; font-size:0.9rem;">Choisis ta quantité, paie par Mobile Money, reçois ton numéro de ticket unique instantanément.</p>
+      </div>
+      <div class="card">
+        <strong class="display">2. Suis le tirage en direct</strong>
+        <p style="color:var(--muted); margin-top:8px; font-size:0.9rem;">À la date annoncée, le tirage est effectué en live sur nos réseaux (Facebook / TikTok / YouTube).</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ADMIN -->
+  <section id="admin">
+    <div class="section-head">
+      <div class="section-eyebrow">Espace organisateur</div>
+      <h2 class="section-title">Panel Admin</h2>
+      <p class="section-sub">⚠️ Authentification simplifiée pour ce prototype — à remplacer par un vrai système sécurisé avant mise en production.</p>
+    </div>
+
+    <div class="card" id="adminGate">
+      <div class="field">
+        <label>Mot de passe admin</label>
+        <input type="password" id="adminPass" placeholder="Mot de passe">
+      </div>
+      <button class="btn btn-gold" id="adminLoginBtn">Se connecter</button>
+      <div id="adminMsg" style="margin-top:10px; font-size:0.85rem; color:var(--coral);"></div>
+    </div>
+
+    <div id="adminPanel" class="hidden">
+      <div class="stat-row">
+        <div class="stat"><div class="v" id="statTickets">0</div><div class="l">Tickets vendus</div></div>
+        <div class="stat"><div class="v" id="statRevenue">0</div><div class="l">Revenu (FCFA)</div></div>
+        <div class="stat"><div class="v" id="statBuyers">0</div><div class="l">Acheteurs</div></div>
+      </div>
+
+      <div class="admin-grid">
+        <div class="card">
+          <strong class="display">Configurer la campagne</strong>
+          <div class="field" style="margin-top:16px;">
+            <label>Nom du lot</label>
+            <input type="text" id="cfgPrize" placeholder="Ex : Pack électroménager">
+          </div>
+          <div class="field">
+            <label>Détail du lot</label>
+            <input type="text" id="cfgPrizeDetail" placeholder="Ex : Un mixeur + un fer à repasser + surprise">
+          </div>
+          <div class="field">
+            <label>Prix du ticket (FCFA)</label>
+            <input type="number" id="cfgPrice" placeholder="500">
+          </div>
+          <div class="field">
+            <label>Date & heure du tirage</label>
+            <input type="datetime-local" id="cfgDate">
+          </div>
+          <div class="field">
+            <label>Lien du live (Facebook/TikTok/YouTube)</label>
+            <input type="text" id="cfgLive" placeholder="https://facebook.com/...">
+          </div>
+          <button class="btn btn-primary" id="saveCampaignBtn">Enregistrer la campagne</button>
+        </div>
+
+        <div class="card">
+          <strong class="display">Publier le résultat</strong>
+          <p style="color:var(--muted); font-size:0.85rem; margin-top:8px;">Après le tirage en live, saisis ici le numéro du ticket gagnant annoncé.</p>
+          <div class="field" style="margin-top:16px;">
+            <label>Numéro du ticket gagnant</label>
+            <input type="text" id="winnerInput" placeholder="Ex : BBM-0007">
+          </div>
+          <button class="btn btn-gold" id="publishWinnerBtn">Publier le gagnant</button>
+          <div id="winnerMsg" style="margin-top:10px; font-size:0.85rem;"></div>
+
+          <div style="margin-top:24px; max-height:260px; overflow:auto;">
+            <table>
+              <thead><tr><th>Ticket</th><th>Acheteur</th><th>Tél.</th></tr></thead>
+              <tbody id="ticketsTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div><span class="fbrand">BABAMY TOMBOLA</span> — une filiale de BABAMY CORP</div>
+  <div>Prototype fonctionnel — à connecter à un vrai backend avant lancement public</div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================
+   CONFIGURATION
+   Remplace la clé ci-dessous par ta vraie clé publique KKiaPay
+   (dashboard.kkiapay.me). Tant qu'elle vaut "REPLACE_ME", le
+   site fonctionne en mode démo (paiement simulé) pour les tests.
+   ========================================================= */
+const KKIAPAY_PUBLIC_KEY = "REPLACE_ME";
+const KKIAPAY_SANDBOX = true; // passe à false en production
+const ADMIN_PASSWORD = "babamy2026"; // ⚠️ à sécuriser côté serveur en prod
+
+let qty = 1;
+let campaign = { prize:"Colis surprise", prizeDetail:"Détails du lot en cours de mise à jour par l'organisateur.", price:500, drawDate:null, live:"" };
+let tickets = []; // {number, name, phone, at}
+let winner = null;
+
+/* ---------- STORAGE HELPERS ---------- */
+async function loadAll(){
+  try{
+    const c = await window.storage.get('campaign', true);
+    if(c && c.value) campaign = JSON.parse(c.value);
+  }catch(e){}
+  try{
+    const t = await window.storage.get('tickets', true);
+    if(t && t.value) tickets = JSON.parse(t.value);
+  }catch(e){}
+  try{
+    const w = await window.storage.get('winner', true);
+    if(w && w.value) winner = JSON.parse(w.value);
+  }catch(e){}
+  render();
+}
+async function saveCampaign(){ await window.storage.set('campaign', JSON.stringify(campaign), true); }
+async function saveTickets(){ await window.storage.set('tickets', JSON.stringify(tickets), true); }
+async function saveWinner(){ await window.storage.set('winner', JSON.stringify(winner), true); }
+
+/* ---------- UI HELPERS ---------- */
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2800);
+}
+function fmt(n){ return Number(n).toLocaleString('fr-FR'); }
+
+function render(){
+  document.getElementById('heroPrize').textContent = "gagnez " + (campaign.prize || "un colis surprise");
+  document.getElementById('stubPrize').textContent = campaign.prize || "Colis surprise à gagner";
+  document.getElementById('stubPrice').textContent = fmt(campaign.price) + " FCFA";
+  document.getElementById('prizeDetail').textContent = campaign.prizeDetail || "Détails du lot en cours de mise à jour par l'organisateur.";
+  document.getElementById('totalAmount').textContent = fmt(campaign.price * qty) + " FCFA";
+  document.getElementById('qtyVal').textContent = qty;
+
+  document.getElementById('cfgPrize').value = campaign.prize || "";
+  document.getElementById('cfgPrizeDetail').value = campaign.prizeDetail || "";
+  document.getElementById('cfgPrice').value = campaign.price || "";
+  document.getElementById('cfgLive').value = campaign.live || "";
+  if(campaign.drawDate) document.getElementById('cfgDate').value = campaign.drawDate;
+
+  // stats
+  document.getElementById('statTickets').textContent = tickets.length;
+  document.getElementById('statRevenue').textContent = fmt(tickets.length * campaign.price);
+  document.getElementById('statBuyers').textContent = new Set(tickets.map(t=>t.phone)).size;
+
+  const tbody = document.getElementById('ticketsTable');
+  tbody.innerHTML = tickets.slice().reverse().map(t=>
+    `<tr><td class="mono">${t.number}</td><td>${t.name}</td><td>${t.phone}</td></tr>`
+  ).join('') || '<tr><td colspan="3" style="color:var(--muted);">Aucun ticket vendu pour l’instant.</td></tr>';
+
+  renderResult();
+  renderCountdown();
+}
+
+function renderResult(){
+  const card = document.getElementById('resultCard');
+  const liveBtn = document.getElementById('liveLinkBtn');
+  if(campaign.live){
+    liveBtn.style.display = 'inline-flex';
+    liveBtn.href = campaign.live;
+  }
+  if(winner && winner.number){
+    const w = tickets.find(t=>t.number === winner.number);
+    card.innerHTML = `
+      <div class="live-badge" style="background:rgba(47,168,118,0.15); color:var(--green);">🎉 Résultat publié</div>
+      <div class="winner-num">${winner.number}</div>
+      <div style="color:var(--muted);">${w ? 'Félicitations à ' + w.name + ' 🎊' : 'Ticket gagnant'}</div>
+      ${campaign.live ? `<a href="${campaign.live}" class="btn btn-ghost" style="margin-top:20px;">▶ Revoir le live du tirage</a>` : ''}
+    `;
+  }
+}
+
+function renderCountdown(){
+  if(!campaign.drawDate){
+    document.getElementById('cdD').textContent='--';
+    document.getElementById('cdH').textContent='--';
+    document.getElementById('cdM').textContent='--';
+    document.getElementById('cdS').textContent='--';
+    return;
+  }
+  const diff = new Date(campaign.drawDate).getTime() - Date.now();
+  if(diff <= 0){
+    document.getElementById('cdD').textContent='0';
+    document.getElementById('cdH').textContent='0';
+    document.getElementById('cdM').textContent='0';
+    document.getElementById('cdS').textContent='0';
+    return;
+  }
+  const d = Math.floor(diff/86400000);
+  const h = Math.floor((diff%86400000)/3600000);
+  const m = Math.floor((diff%3600000)/60000);
+  const s = Math.floor((diff%60000)/1000);
+  document.getElementById('cdD').textContent=d;
+  document.getElementById('cdH').textContent=h;
+  document.getElementById('cdM').textContent=m;
+  document.getElementById('cdS').textContent=s;
+}
+setInterval(renderCountdown, 1000);
+
+/* ---------- QTY ---------- */
+document.getElementById('qtyPlus').onclick = ()=>{ qty++; render(); };
+document.getElementById('qtyMinus').onclick = ()=>{ if(qty>1){ qty--; render(); } };
+
+/* ---------- BUY / PAYMENT ---------- */
+function genTicketNumber(){
+  const n = (tickets.length + 1).toString().padStart(4,'0');
+  return 'BBM-' + n;
+}
+
+async function confirmPurchase(name, phone){
+  const newTickets = [];
+  for(let i=0;i<qty;i++){
+    newTickets.push({ number: genTicketNumber_seq(newTickets.length), name, phone, at: new Date().toISOString() });
+  }
+  tickets = tickets.concat(newTickets);
+  await saveTickets();
+  render();
+  document.getElementById('buyMsg').innerHTML = `<div style="color:var(--green); font-weight:700;">✅ Paiement confirmé ! Tes tickets : ${newTickets.map(t=>t.number).join(', ')}</div>`;
+  toast('🎟️ Ticket(s) généré(s) avec succès');
+}
+function genTicketNumber_seq(offset){
+  const n = (tickets.length + offset + 1).toString().padStart(4,'0');
+  return 'BBM-' + n;
+}
+
+document.getElementById('payBtn').onclick = function(){
+  const name = document.getElementById('buyerName').value.trim();
+  const phone = document.getElementById('buyerPhone').value.trim();
+  const msg = document.getElementById('buyMsg');
+  if(!name || !phone){
+    msg.innerHTML = '<div style="color:var(--coral);">Merci de renseigner ton nom et ton numéro.</div>';
+    return;
+  }
+  const amount = campaign.price * qty;
+
+  if(KKIAPAY_PUBLIC_KEY === "REPLACE_ME"){
+    // MODE DEMO — pas de vraie clé configurée
+    msg.innerHTML = '<div style="color:var(--muted);">⏳ Simulation du paiement (mode démo)...</div>';
+    setTimeout(()=>{ confirmPurchase(name, phone); }, 1400);
+    return;
+  }
+
+  // MODE REEL — ouvre le widget KKiaPay
+  if(typeof openKkiapayWidget !== 'function'){
+    msg.innerHTML = '<div style="color:var(--coral);">Le module de paiement n’a pas pu se charger. Vérifie ta connexion.</div>';
+    return;
+  }
+  openKkiapayWidget({
+    amount: amount,
+    key: KKIAPAY_PUBLIC_KEY,
+    sandbox: KKIAPAY_SANDBOX,
+    phone: phone,
+    data: JSON.stringify({ name, phone, qty })
+  });
+  addKkiapayListener('success', function successHandler(){
+    confirmPurchase(name, phone);
+    removeKkiapayListener('success', successHandler);
+  });
+};
+
+/* ---------- LOOKUP ---------- */
+document.getElementById('lookupBtn').onclick = ()=>{
+  const phone = document.getElementById('lookupPhone').value.trim();
+  const list = document.getElementById('ticketsList');
+  const mine = tickets.filter(t=>t.phone === phone);
+  if(!phone){ list.innerHTML = ''; return; }
+  if(mine.length === 0){
+    list.innerHTML = '<div style="color:var(--muted);">Aucun ticket trouvé pour ce numéro.</div>';
+    return;
+  }
+  list.innerHTML = mine.map(t=>{
+    const isWin = winner && winner.number === t.number;
+    return `<div class="mini-stub"><span class="num">${t.number}</span>${isWin ? '<span class="win">🏆 Gagnant</span>' : ''}</div>`;
+  }).join('');
+};
+
+/* ---------- ADMIN ---------- */
+document.getElementById('adminLoginBtn').onclick = ()=>{
+  const pass = document.getElementById('adminPass').value;
+  if(pass === ADMIN_PASSWORD){
+    document.getElementById('adminGate').classList.add('hidden');
+    document.getElementById('adminPanel').classList.remove('hidden');
+    render();
+  }else{
+    document.getElementById('adminMsg').textContent = 'Mot de passe incorrect.';
+  }
+};
+
+document.getElementById('saveCampaignBtn').onclick = async ()=>{
+  campaign.prize = document.getElementById('cfgPrize').value.trim() || campaign.prize;
+  campaign.prizeDetail = document.getElementById('cfgPrizeDetail').value.trim();
+  campaign.price = Number(document.getElementById('cfgPrice').value) || campaign.price;
+  campaign.drawDate = document.getElementById('cfgDate').value;
+  campaign.live = document.getElementById('cfgLive').value.trim();
+  await saveCampaign();
+  render();
+  toast('✅ Campagne enregistrée');
+};
+
+document.getElementById('publishWinnerBtn').onclick = async ()=>{
+  const num = document.getElementById('winnerInput').value.trim().toUpperCase();
+  const exists = tickets.find(t=>t.number === num);
+  const wmsg = document.getElementById('winnerMsg');
+  if(!exists){
+    wmsg.innerHTML = '<span style="color:var(--coral);">Ce numéro de ticket n’existe pas dans la liste des ventes.</span>';
+    return;
+  }
+  winner = { number: num, at: new Date().toISOString() };
+  await saveWinner();
+  render();
+  wmsg.innerHTML = '<span style="color:var(--green);">🎉 Résultat publié avec succès.</span>';
+  toast('🏆 Gagnant publié : ' + num);
+};
+
+loadAll();
+</script>
+</body>
+</html>
