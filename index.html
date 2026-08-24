@@ -3,10 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BABAMY Tombola</title>
+<title>BABAMY Tombola — Tentez votre chance</title>
+<meta name="description" content="Achetez vos tickets de tombola en ligne, payez par Mobile Money, et suivez le tirage en direct. Une initiative BABAMY CORP.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%2312123A'/%3E%3Ctext x='50' y='68' font-size='58' font-family='sans-serif' font-weight='bold' text-anchor='middle' fill='%23F2B705'%3E%F0%9F%8E%9F%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.kkiapay.me/k.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root{
     --ink:#12123A;
@@ -115,6 +118,11 @@
   }
   .cd-box .num{font-family:'Space Mono',monospace; font-weight:700; font-size:1.5rem; color:var(--gold);}
   .cd-box .lab{font-size:0.65rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-top:2px;}
+  .social-proof{
+    margin-top:20px; font-size:0.88rem; color:var(--muted);
+    display:inline-flex; align-items:center; gap:8px;
+  }
+  .social-proof strong{color:var(--gold); font-family:'Space Mono',monospace;}
 
   /* ---------- TICKET STUB (signature element) ---------- */
   .stub{
@@ -225,6 +233,27 @@
   .stat .v{font-family:'Space Mono',monospace; font-weight:700; font-size:1.4rem; color:var(--gold);}
   .stat .l{font-size:0.7rem; color:var(--muted); text-transform:uppercase; margin-top:2px;}
 
+  .steps-grid{display:grid; gap:20px;}
+  @media(min-width:860px){.steps-grid{grid-template-columns:repeat(3,1fr);}}
+  .step-card{position:relative; padding-top:34px;}
+  .step-num{
+    font-family:'Space Mono',monospace; font-weight:700; font-size:0.85rem;
+    color:var(--coral); position:absolute; top:20px; right:22px; opacity:0.7;
+  }
+
+  .faq-list{display:flex; flex-direction:column; gap:12px; max-width:70ch;}
+  .faq-item{
+    background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:16px 20px;
+  }
+  .faq-item summary{
+    cursor:pointer; font-weight:600; font-family:'Space Grotesk',sans-serif; font-size:0.98rem;
+    list-style:none; display:flex; justify-content:space-between; align-items:center;
+  }
+  .faq-item summary::-webkit-details-marker{display:none;}
+  .faq-item summary::after{content:"+"; color:var(--gold); font-size:1.3rem; font-weight:700; margin-left:12px;}
+  .faq-item[open] summary::after{content:"−";}
+  .faq-item p{color:var(--muted); margin-top:12px; font-size:0.9rem; line-height:1.6;}
+
   footer{
     padding:40px 6vw; border-top:1px solid var(--line); color:var(--muted); font-size:0.85rem;
     display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;
@@ -252,6 +281,7 @@
     <a href="#mes-tickets">Mes tickets</a>
     <a href="#resultats">Résultats</a>
     <a href="#comment">Comment ça marche</a>
+    <a href="#faq">FAQ</a>
   </div>
   <a href="#acheter" class="btn btn-gold" style="padding:10px 18px;font-size:0.85rem;">Acheter un ticket</a>
 </nav>
@@ -274,6 +304,7 @@
         <div class="cd-box"><div class="num" id="cdM">--</div><div class="lab">Min</div></div>
         <div class="cd-box"><div class="num" id="cdS">--</div><div class="lab">Sec</div></div>
       </div>
+      <div class="social-proof" id="socialProof">🎟️ <strong id="soldCount">0</strong> ticket(s) déjà vendu(s) — rejoins les participants</div>
     </div>
     <div>
       <div class="stub">
@@ -383,16 +414,54 @@
     <div class="section-head">
       <div class="section-eyebrow">Le principe</div>
       <h2 class="section-title">Comment ça marche</h2>
+      <p class="section-sub">Trois étapes, du ticket au colis livré.</p>
     </div>
-    <div class="buy-grid">
-      <div class="card">
-        <strong class="display">1. Achète ton ticket</strong>
-        <p style="color:var(--muted); margin-top:8px; font-size:0.9rem;">Choisis ta quantité, paie par Mobile Money, reçois ton numéro de ticket unique instantanément.</p>
+    <div class="steps-grid">
+      <div class="card step-card">
+        <div class="step-num">01</div>
+        <strong class="display">Achète ton ticket</strong>
+        <p style="color:var(--muted); margin-top:8px; font-size:0.9rem;">Choisis ta quantité, paie par Mobile Money (MTN ou Moov), reçois ton numéro de ticket unique à l'instant.</p>
       </div>
-      <div class="card">
-        <strong class="display">2. Suis le tirage en direct</strong>
-        <p style="color:var(--muted); margin-top:8px; font-size:0.9rem;">À la date annoncée, le tirage est effectué en live sur nos réseaux (Facebook / TikTok / YouTube).</p>
+      <div class="card step-card">
+        <div class="step-num">02</div>
+        <strong class="display">Suis le tirage en direct</strong>
+        <p style="color:var(--muted); margin-top:8px; font-size:0.9rem;">À la date annoncée, le tirage se fait en live sur nos réseaux. Tout le monde voit le même numéro sortir, en même temps.</p>
       </div>
+      <div class="card step-card">
+        <div class="step-num">03</div>
+        <strong class="display">Récupère ton colis</strong>
+        <p style="color:var(--muted); margin-top:8px; font-size:0.9rem;">Le gagnant est contacté directement sur son numéro Mobile Money pour organiser la remise du lot.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq">
+    <div class="section-head">
+      <div class="section-eyebrow">Questions fréquentes</div>
+      <h2 class="section-title">Avant de participer</h2>
+    </div>
+    <div class="faq-list">
+      <details class="faq-item">
+        <summary>Le tirage est-il vraiment honnête ?</summary>
+        <p>Oui. Le tirage se déroule en direct, filmé, sur nos réseaux sociaux. Aucune sélection en coulisses : le numéro sort devant tout le monde, et le replay reste disponible pour vérification.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Comment je sais si j'ai gagné ?</summary>
+        <p>Le numéro gagnant est publié sur cette page juste après le live. Tu peux aussi retrouver tous tes tickets dans la section "Mes tickets" avec ton numéro de téléphone.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Quels moyens de paiement sont acceptés ?</summary>
+        <p>MTN Mobile Money et Moov Money, directement depuis ton téléphone. Aucune carte bancaire nécessaire.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Puis-je acheter plusieurs tickets ?</summary>
+        <p>Oui, autant que tu veux. Chaque ticket supplémentaire a son propre numéro et augmente tes chances de gagner.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Que se passe-t-il si je ne gagne pas ?</summary>
+        <p>Les tickets ne sont pas remboursables — c'est le principe d'une tombola. Une nouvelle campagne est régulièrement relancée avec un nouveau lot à gagner.</p>
+      </details>
     </div>
   </section>
 
@@ -487,30 +556,69 @@ const KKIAPAY_PUBLIC_KEY = "REPLACE_ME";
 const KKIAPAY_SANDBOX = true; // passe à false en production
 const ADMIN_PASSWORD = "babamy2026"; // ⚠️ à sécuriser côté serveur en prod
 
+const SUPABASE_URL = "https://adkypybjoccqrwwcdwtp.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_rYg4nad2TK89KOdlVTA6NQ_NmPxX0tJ";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 let qty = 1;
 let campaign = { prize:"Colis surprise", prizeDetail:"Détails du lot en cours de mise à jour par l'organisateur.", price:500, drawDate:null, live:"" };
 let tickets = []; // {number, name, phone, at}
 let winner = null;
 
-/* ---------- STORAGE HELPERS ---------- */
+/* ---------- SUPABASE HELPERS ---------- */
 async function loadAll(){
   try{
-    const c = await window.storage.get('campaign', true);
-    if(c && c.value) campaign = JSON.parse(c.value);
-  }catch(e){}
+    const { data: c } = await sb.from('campaign').select('*').eq('id', 1).single();
+    if(c){
+      campaign = {
+        prize: c.prize, prizeDetail: c.prize_detail, price: c.price,
+        drawDate: c.draw_date ? new Date(c.draw_date).toISOString().slice(0,16) : null,
+        live: c.live_link
+      };
+    }
+  }catch(e){ console.error('campaign load', e); }
+
   try{
-    const t = await window.storage.get('tickets', true);
-    if(t && t.value) tickets = JSON.parse(t.value);
-  }catch(e){}
+    const { data: t } = await sb.from('tickets').select('*').order('created_at', { ascending:true });
+    if(t){
+      tickets = t.map(row => ({ number: row.ticket_number, name: row.buyer_name, phone: row.buyer_phone, at: row.created_at }));
+    }
+  }catch(e){ console.error('tickets load', e); }
+
   try{
-    const w = await window.storage.get('winner', true);
-    if(w && w.value) winner = JSON.parse(w.value);
-  }catch(e){}
+    const { data: w } = await sb.from('winner').select('*').eq('id', 1).single();
+    if(w && w.ticket_number){
+      winner = { number: w.ticket_number, at: w.declared_at };
+    }
+  }catch(e){ console.error('winner load', e); }
+
   render();
 }
-async function saveCampaign(){ await window.storage.set('campaign', JSON.stringify(campaign), true); }
-async function saveTickets(){ await window.storage.set('tickets', JSON.stringify(tickets), true); }
-async function saveWinner(){ await window.storage.set('winner', JSON.stringify(winner), true); }
+
+async function saveCampaign(){
+  await sb.from('campaign').update({
+    prize: campaign.prize,
+    prize_detail: campaign.prizeDetail,
+    price: campaign.price,
+    draw_date: campaign.drawDate ? new Date(campaign.drawDate).toISOString() : null,
+    live_link: campaign.live
+  }).eq('id', 1);
+}
+
+async function insertTicketsRemote(newTickets){
+  const rows = newTickets.map(t => ({
+    ticket_number: t.number, buyer_name: t.name, buyer_phone: t.phone
+  }));
+  const { error } = await sb.from('tickets').insert(rows);
+  if(error) throw error;
+}
+
+async function saveWinner(){
+  await sb.from('winner').update({
+    ticket_number: winner.number,
+    declared_at: winner.at
+  }).eq('id', 1);
+}
 
 /* ---------- UI HELPERS ---------- */
 function toast(msg){
@@ -528,6 +636,7 @@ function render(){
   document.getElementById('prizeDetail').textContent = campaign.prizeDetail || "Détails du lot en cours de mise à jour par l'organisateur.";
   document.getElementById('totalAmount').textContent = fmt(campaign.price * qty) + " FCFA";
   document.getElementById('qtyVal').textContent = qty;
+  document.getElementById('soldCount').textContent = tickets.length;
 
   document.getElementById('cfgPrize').value = campaign.prize || "";
   document.getElementById('cfgPrizeDetail').value = campaign.prizeDetail || "";
@@ -605,19 +714,25 @@ function genTicketNumber(){
 }
 
 async function confirmPurchase(name, phone){
-  const newTickets = [];
-  for(let i=0;i<qty;i++){
-    newTickets.push({ number: genTicketNumber_seq(newTickets.length), name, phone, at: new Date().toISOString() });
+  const msg = document.getElementById('buyMsg');
+  try{
+    // recharge le compte de tickets le plus à jour possible pour limiter les collisions de numéro
+    const { data: current } = await sb.from('tickets').select('ticket_number');
+    let base = current ? current.length : tickets.length;
+    const newTickets = [];
+    for(let i=0;i<qty;i++){
+      base++;
+      newTickets.push({ number: 'BBM-' + String(base).padStart(4,'0'), name, phone, at: new Date().toISOString() });
+    }
+    await insertTicketsRemote(newTickets);
+    tickets = tickets.concat(newTickets);
+    render();
+    msg.innerHTML = `<div style="color:var(--green); font-weight:700;">✅ Paiement confirmé ! Tes tickets : ${newTickets.map(t=>t.number).join(', ')}</div>`;
+    toast('🎟️ Ticket(s) généré(s) avec succès');
+  }catch(e){
+    console.error(e);
+    msg.innerHTML = `<div style="color:var(--coral);">Le paiement a réussi mais l'enregistrement du ticket a échoué. Contacte-nous avec ta preuve de paiement.</div>`;
   }
-  tickets = tickets.concat(newTickets);
-  await saveTickets();
-  render();
-  document.getElementById('buyMsg').innerHTML = `<div style="color:var(--green); font-weight:700;">✅ Paiement confirmé ! Tes tickets : ${newTickets.map(t=>t.number).join(', ')}</div>`;
-  toast('🎟️ Ticket(s) généré(s) avec succès');
-}
-function genTicketNumber_seq(offset){
-  const n = (tickets.length + offset + 1).toString().padStart(4,'0');
-  return 'BBM-' + n;
 }
 
 document.getElementById('payBtn').onclick = function(){
